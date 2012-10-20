@@ -31,7 +31,7 @@ from glob import glob as original_glob
 from types import ModuleType
 from functools import partial
 import warnings
-
+import platform
 
 
 __version__ = "0.109"
@@ -43,6 +43,29 @@ if IS_PY3:
     unicode = str
 else:
     pass
+
+
+if "windows" not in platform.system().lower():
+    warnings.simplefilter("always")
+    warnings.warn("""
+    
+Sh.py is the new pbs.  Please download and install sh.py with the following
+command:
+
+    $ pip install sh
+    
+or
+
+    $ easy_install sh
+
+Sh.py includes many enhancements and will be the supported subprocess launcher
+for the future.  See its documentation here http://amoffat.github.com/sh/.
+
+To migrate existing code, try this:
+
+    import sh as pbs
+
+""", DeprecationWarning)
 
 
 
