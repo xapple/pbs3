@@ -1,7 +1,7 @@
 `pbs3` v3.0.0
 =============
 
-## This is a fork of the `pbs` package that works on Windows and Python 3.
+#### This is a fork of the `pbs` package that works on Windows and Python 3. ####
 
 ### Why do we need a new version of `pbs`?
 
