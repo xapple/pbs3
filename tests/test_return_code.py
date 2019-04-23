@@ -3,11 +3,14 @@
 # Built-in modules #
 import sys, tempfile
 
+# Third party modules #
+import pytest
+
 # Internal modules #
 import pbs3
 
 ###############################################################################
-def return_code_test():
+def test_return_code():
     """
     Will test what happens when the program called exits with
     the return code 2. It should raise 'ErrorReturnCode_2'.
@@ -27,4 +30,5 @@ def return_code_test():
     # Command #
     python = pbs3.Command(sys.executable)
     # Call #
-    python(program_path, _out=stdout_path, _err=stderr_path)
+    with pytest.raises(pbs3.ErrorReturnCode):
+        python(program_path, _out=stdout_path, _err=stderr_path)
