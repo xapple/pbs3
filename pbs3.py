@@ -21,7 +21,7 @@
 #===============================================================================#
 
 # Constants #
-__version__     = "3.0.0"
+__version__     = "3.0.1"
 __project_url__ = "https://github.com/xapple/pbs3"
 
 # Modules #

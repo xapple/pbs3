@@ -1,5 +1,5 @@
-`pbs3` v3.0.0
-=============
+`pbs3` version 3.0.1
+====================
 
 #### This is a fork of the `pbs` package that works on Windows and Python 3. ####
 
