@@ -34,8 +34,8 @@ import warnings
 import platform
 
 
-__version__ = "0.110"
-__project_url__ = "https://github.com/amoffat/pbs"
+__version__ = "3.0.0"
+__project_url__ = "https://github.com/xapple/pbs3"
 
 IS_PY3 = sys.version_info[0] == 3
 if IS_PY3:
@@ -48,12 +48,12 @@ else:
 if "windows" not in platform.system().lower():
     warnings.simplefilter("always")
     warnings.warn("""
-    
+
 Sh.py is the new pbs.  Please download and install sh.py with the following
 command:
 
     $ pip install sh
-    
+
 or
 
     $ easy_install sh
