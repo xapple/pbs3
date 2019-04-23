@@ -1,17 +1,76 @@
-PBS has now become sh.
-======================
+`pbs3` v3.0.0
+=============
 
-PBS will no longer be supported.  Please upgrade here:
+## This is a fork of the `pbs` package that works on Windows and Python 3.
 
-http://pypi.python.org/pypi/sh
+### Why do we need a new version of `pbs`?
 
-And migrate your existin code with:
+* First, in early 2012, the original `pbs` package was conceived by [@amoffat](https://github.com/amoffat/sh). It could launch subprocesses on both Unix and Windows environments with Python 2.
 
-```python
-import sh as pbs
-```
+* In late 2012, the `pbs` project was renamed to `sh`, lots of functionality was added, but support for Windows [was completely dropped](http://amoffat.github.io/sh/sections/faq.html#will-windows-be-supported).
+
+* For these reasons, the legacy `pbs` package is still used whenever one needs to launch external processes on Windows machines and is [still available](https://pypi.org/project/pbs/) at `pip install pbs`.
+
+* However the latest `pbs` version (v0.110 from Oct 20, 2012) does not work on Python 3. This package, `pbs3` fixes this.
+
+
+### How do I install and use this package?
+
+* You can install this version with this command:
+
+    `pip install pbs3`
+
+* You can use this package with this import statement:
+
+    `import pbs3 as pbs`
+
+* Or if you are porting from `sh` code:
+
+    `import pbs3 as sh`
+
+
+### What exactly did not work in Python 3?
+
+This would be the traceback that the old pbs v0.110 would produce:
+
+    c:\python37\lib\site-packages\pbs.py in __call__(self, *args, **kwargs)
+        454             cwd=call_args["cwd"], stdin=stdin, stdout=stdout, stderr=stderr)
+        455
+    --> 456         return RunningCommand(command_ran, process, call_args, actual_stdin)
+        457
+        458
+
+    c:\python37\lib\site-packages\pbs.py in __init__(self, command_ran, process, call_args,
+     stdin)
+        166         if stdin: stdin = stdin.encode("utf8")
+        167         self._stdout, self._stderr = self.process.communicate(stdin)
+    --> 168         self._handle_exit_code(self.process.wait())
+        169
+        170     def __enter__(self):
+
+    c:\python37\lib\site-packages\pbs.py in _handle_exit_code(self, rc)
+        233     def _handle_exit_code(self, rc):
+        234         if rc not in self.call_args["ok_code"]:
+    --> 235             raise get_rc_exc(rc)(self.command_ran, self._stdout, self._stderr)
+        236
+        237     def __len__(self):
+
+    c:\python37\lib\site-packages\pbs.py in __init__(self, full_cmd, stdout, stderr)
+         93
+         94         msg = "\n\nRan: %r\n\nSTDOUT:\n\n  %s\n\nSTDERR:\n\n  %s" %\
+    ---> 95             (full_cmd, tstdout.decode(), tstderr.decode())
+         96         super(ErrorReturnCode, self).__init__(msg)
+         97
+
+    AttributeError: 'str' object has no attribute 'decode'
+
+This would occur when the program called exited with a non-zero return code.
 
 * * *
+
+
+Original documentation
+======================
 
 PBS is a unique subprocess wrapper that maps your system programs to
 Python functions dynamically.  PBS helps you write shell scripts in
