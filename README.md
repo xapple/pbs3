@@ -68,7 +68,7 @@ Commands work like you'd expect.  **Just call your program's name like
 a function:**
 
 ```python
-# print the contents of this directory 
+# print the contents of this directory
 print ls("-l")
 
 # get the longest line of this file
@@ -130,9 +130,9 @@ print wc(ls("/etc", "-1"), "-l")
 
 ## Redirection
 
-PBS can redirect the standard and error output streams of a process to a file. 
+PBS can redirect the standard and error output streams of a process to a file.
 This is done with the special _out and _err keyword arguments. You can pass a
-filename or a file object as the argument value. When the name of an already 
+filename or a file object as the argument value. When the name of an already
 existing file is passed, the contents of the file will be overwritten.
 
 ```python
@@ -223,7 +223,7 @@ The return value of a foreground process is an empty string.
 
 "Which" finds the full path of a program, or returns None if it doesn't exist.
 This command is one of the few commands implemented as a Python function,
-and therefore doesn't rely on the "which" program actually existing. 
+and therefore doesn't rely on the "which" program actually existing.
 
 ```python
 print which("python") # "/usr/bin/python"
@@ -245,10 +245,10 @@ ls = ls.bake("-la")
 print ls # "/usr/bin/ls -la"
 
 # resolves to "ls / -la"
-print ls("/") 
+print ls("/")
 ```
 
-The idea is that calling "bake" on a command creates a callable object 
+The idea is that calling "bake" on a command creates a callable object
 that automatically passes along all of the arguments passed into "bake".
 This gets **really interesting** when you combine this with the attribute
 access on a command:
@@ -330,7 +330,7 @@ This is because the "\*" needs to be glob expanded:
 
 ```python
 from pbs import du, glob
-print du(glob("*")) 
+print du(glob("*"))
 ```
 
 
@@ -402,4 +402,4 @@ In the above example, even though you're trying to list a directory that doesn't
 exist, you can still get the output from the directory that does exist by telling
 the command that 2 is an "ok" exit code, so don't raise an exception.
 
-_ok_code can also take a list or tuple of numbers for multiple ok exit codes. 
+_ok_code can also take a list or tuple of numbers for multiple ok exit codes.
