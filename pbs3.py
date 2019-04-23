@@ -68,26 +68,30 @@ class ErrorReturnCode(Exception):
     truncate_cap = 200
 
     def __init__(self, full_cmd, stdout, stderr):
+        # Attributes #
         self.full_cmd = full_cmd
-        self.stdout = stdout
-        self.stderr = stderr
-
-        if self.stdout is None: tstdout = "<redirected>"
+        self.stdout   = stdout
+        self.stderr   = stderr
+        # Check stdout #
+        if self.stdout is None:
+            tstdout = "<redirected>".encode()
         else:
-            tstdout = self.stdout[:self.truncate_cap]
+            tstdout   = self.stdout[:self.truncate_cap]
             out_delta = len(self.stdout) - len(tstdout)
             if out_delta:
                 tstdout += ("... (%d more, please see e.stdout)" % out_delta).encode()
-
-        if self.stderr is None: tstderr = "<redirected>"
+        # Check stderr #
+        if self.stderr is None:
+            tstderr = "<redirected>".encode()
         else:
-            tstderr = self.stderr[:self.truncate_cap]
+            tstderr   = self.stderr[:self.truncate_cap]
             err_delta = len(self.stderr) - len(tstderr)
             if err_delta:
                 tstderr += ("... (%d more, please see e.stderr)" % err_delta).encode()
-
-        msg = "\n\nRan: %r\n\nSTDOUT:\n\n  %s\n\nSTDERR:\n\n  %s" %\
-            (full_cmd, tstdout.decode(), tstderr.decode())
+        # Build message #
+        msg = "\n\nRan: %r\n\nSTDOUT:\n\n  %s\n\nSTDERR:\n\n  %s"
+        msg = msg % (full_cmd, tstdout.decode(), tstderr.decode())
+        # Call parent #
         super(ErrorReturnCode, self).__init__(msg)
 
 class CommandNotFound(Exception): pass
