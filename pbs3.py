@@ -103,7 +103,6 @@ def get_rc_exc(rc):
     rc = int(rc)
     try: return rc_exc_cache[rc]
     except KeyError: pass
-
     name = "ErrorReturnCode_%d" % rc
     exc = type(name, (ErrorReturnCode,), {})
     rc_exc_cache[rc] = exc
@@ -112,7 +111,6 @@ def get_rc_exc(rc):
 def which(program):
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-
     fpath, fname = os.path.split(program)
     if fpath:
         if is_exe(program): return program
@@ -121,7 +119,6 @@ def which(program):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
-
     return None
 
 def resolve_program(program):
@@ -137,7 +134,6 @@ def resolve_program(program):
 
 def glob(arg):
     return original_glob(arg) or arg
-
 
 ###############################################################################
 class RunningCommand(object):
@@ -231,7 +227,6 @@ class RunningCommand(object):
     def __len__(self):
         return len(str(self))
 
-
 ###############################################################################
 class Command(object):
     _prepend_stack = []
@@ -246,9 +241,8 @@ class Command(object):
         "in":         None,
         "env":        os.environ,
         "cwd":        None,
-
         # This is for commands that may have a different exit status than the
-        # normal 0.  this can either be an integer or a list/tuple of ints
+        # normal 0. This can either be an integer or a list/tuple of integers
         "ok_code": 0,
     }
 
@@ -294,8 +288,9 @@ class Command(object):
         for arg in args:
             if isinstance(arg, (list, tuple)):
                 if not arg:
-                    warnings.warn("Empty list passed as an argument to %r. \
-If you're using glob.glob(), please use pbs.glob() instead." % self.path, stacklevel=3)
+                    message  = "Empty list passed as an argument to %r"
+                    message += "If you're using glob.glob(), please use pbs.glob() instead."
+                    warnings.warn(message % self.path, stacklevel=3)
                 for sub_arg in arg: processed_args.append(self._format_arg(sub_arg))
             else: processed_args.append(self._format_arg(arg))
 
@@ -358,10 +353,8 @@ If you're using glob.glob(), please use pbs.glob() instead." % self.path, stackl
         Command._prepend_stack.pop()
 
     def __call__(self, *args, **kwargs):
-
         kwargs = kwargs.copy()
         args = list(args)
-
         cmd = []
 
         # aggregate any with contexts
@@ -439,13 +432,15 @@ If you're using glob.glob(), please use pbs.glob() instead." % self.path, stackl
 
         return RunningCommand(command_ran, process, call_args, actual_stdin)
 
-
 ###############################################################################
-# This class is used directly when we do a "from pbs import *".  it allows
-# lookups to names that aren't found in the global scope to be searched
-# for as a program.  for example, if "ls" isn't found in the program's
-# scope, we consider it a system program and try to find it.
 class Environment(dict):
+    """
+    This class is used directly when we do a "from pbs import *". It allows
+    lookups to names that aren't found in the global scope to be searched
+    for as a program. For example, if "ls" isn't found in the program's
+    scope, we consider it a system program and try to find it.
+    """
+
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         self["Command"]         = Command
@@ -454,28 +449,29 @@ class Environment(dict):
         self["ARGV"]            = sys.argv[1:]
         for i, arg in enumerate(sys.argv):
             self["ARG%d" % i] = arg
-        # this needs to be last
+        # This needs to be last
         self["env"] = os.environ
 
     def __setitem__(self, k, v):
         # Are we altering an environment variable?
         if "env" in self and k in self["env"]: self["env"][k] = v
-        # no?  just setting a regular name
+        # No? Just setting a regular name
         else: dict.__setitem__(self, k, v)
 
     def __missing__(self, key):
         # This seems to happen in Python 3
         if key == "__path__":
-            message  = "You cannot use the form 'from pbs import x' in Python 3. \n"
-            message += "Please use x = pbs.Command('x') instead. \n"
+            message  = "You cannot use the form 'from pbs import x' in Python 3."
+            message += "Please use x = pbs.Command('x') instead."
             raise ImportError(message)
 
         # The only way we'd get to here is if we've tried to
         # import * from a repl. So, raise an exception, since
         # that's really the only sensible thing to do
         if key == "__all__":
-            raise ImportError("Cannot import * from pbs. \
-Please import pbs or import programs individually.")
+            message  = "Cannot import * from pbs."
+            message += "Please import pbs or import programs individually."
+            raise ImportError(message)
 
         # If we end with "_" just go ahead and skip searching
         # our namespace for python stuff. This was mainly for the
@@ -516,36 +512,23 @@ Please import pbs or import programs individually.")
     def b_which(self, program):
         return which(program)
 
-
 ###############################################################################
-def run_repl(env):
-    banner = "\n>> PBS3 v{version}\n>>\n"
-
-    print(banner.format(version=__version__))
-    while True:
-        try: line = raw_input("pbs3> ")
-        except (ValueError, EOFError): break
-
-        try: exec(compile(line, "<dummy>", "single"), env, env)
-        except SystemExit: break
-        except: print(traceback.format_exc())
-
-    # Cleans up our last line
-    print("")
-
-
-###############################################################################
-# This is a thin wrapper around THIS module (we patch sys.modules[__name__]).
-# this is in the case that the user does a "from pbs import whatever"
-# in other words, they only want to import certain programs, not the whole
-# system PATH worth of commands.  in this case, we just proxy the
-# import lookup to our Environment class
 class SelfWrapper(ModuleType):
+    """
+    This is a thin wrapper around THIS module (we patch sys.modules[__name__]).
+    this is in the case that the user does a "from pbs import whatever"
+    in other words, they only want to import certain programs, not the whole
+    system PATH worth of commands. In this case, we just proxy the
+    import lookup to our Environment class.
+    """
+
     def __init__(self, self_module):
-        # This is super ugly to have to copy attributes like this,
-        # but it seems to be the only way to make reload() behave
-        # nicely.  if i make these attributes dynamic lookups in
-        # __getattr__, reload sometimes chokes in weird ways...
+        """
+        This is super ugly to have to copy attributes like this,
+        but it seems to be the only way to make reload() behave
+        nicely. If one makes these attributes dynamic lookups in
+        __getattr__, reload sometimes chokes in weird ways.
+        """
         for attr in ["__builtins__", "__doc__", "__name__", "__package__"]:
             setattr(self, attr, getattr(self_module, attr))
 
@@ -555,18 +538,6 @@ class SelfWrapper(ModuleType):
     def __getattr__(self, name):
         return self.env[name]
 
-
 ###############################################################################
-# We're being run as a stand-alone script, fire up a REPL
-if __name__ == "__main__":
-    globs = globals()
-    f_globals = {}
-    for k in ["__builtins__", "__doc__", "__name__", "__package__"]:
-        f_globals[k] = globs[k]
-    env = Environment(f_globals)
-    run_repl(env)
-
-# We're being imported from somewhere
-else:
-    self = sys.modules[__name__]
-    sys.modules[__name__] = SelfWrapper(self)
+self = sys.modules[__name__]
+sys.modules[__name__] = SelfWrapper(self)
