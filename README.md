@@ -3,6 +3,13 @@
 
 #### This is a fork of the `pbs` package that works on Windows and Python 3. ####
 
+| Package | Unix / Python 2 | Unix / Python 3 | Windows / Python 2 | Windows / Python 3 |
+| ------- | --------------- | --------------- | ---------------    | ---------------    |
+| `sh`    | ✅ Works        | ✅  Works       | 🔴 Not supported   | 🔴 Not supported   |
+| `pbs`   | ✅ Works        | 🔴  Fails       | ✅ Works           | 🔴 Fails           |
+| `pbs3`  | ✅ Works        | ✅  Works       | ✅ Works           | ✅ Works           |
+
+
 ### Why do we need a new version of `pbs`?
 
 * First, in early 2012, the original `pbs` package was conceived by [@amoffat](https://github.com/amoffat/sh). It could launch subprocesses on both Unix and Windows environments with Python 2.
