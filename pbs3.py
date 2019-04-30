@@ -1,46 +1,19 @@
-#===============================================================================#
-# Copyright (C) 2011-2012 by Andrew Moffat                                      #
-#                                                                               #
-# Permission is hereby granted, free of charge, to any person obtaining a copy  #
-# of this software and associated documentation files (the "Software"), to deal #
-# in the Software without restriction, including without limitation the rights  #
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell     #
-# copies of the Software, and to permit persons to whom the Software is         #
-# furnished to do so, subject to the following conditions:                      #
-#                                                                               #
-# The above copyright notice and this permission notice shall be included in    #
-# all copies or substantial portions of the Software.                           #
-#                                                                               #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR    #
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,      #
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE   #
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER        #
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, #
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN     #
-# THE SOFTWARE.                                                                 #
-#===============================================================================#
-
 # Constants #
 __version__     = "3.0.1"
 __project_url__ = "https://github.com/xapple/pbs3"
 
 # Modules #
-import sys, traceback, os, re, warnings, platform
-import subprocess as subp
-from glob      import glob as original_glob
-from types     import ModuleType
-from functools import partial
+import sys, os, re, warnings, platform, functools, types, subprocess
+from glob import glob as original_glob
 
 # Python 3 hack #
 IS_PY3 = sys.version_info[0] == 3
 if IS_PY3:
     raw_input = input
-    unicode = str
-else:
-    pass
+    unicode   = str
 
 ###############################################################################
-message = """
+windows_warning = """
 Sh.py is the new pbs. Please download and install sh.py with the following
 command:
 
@@ -61,58 +34,63 @@ To migrate existing code, try this:
 # Deprecation warning if not on windows #
 if "windows" not in platform.system().lower():
     warnings.simplefilter("always")
-    warnings.warn(message, DeprecationWarning)
+    warnings.warn(windows_warning, DeprecationWarning)
 
 ###############################################################################
+class CommandNotFound(Exception): pass
+
 class ErrorReturnCode(Exception):
     truncate_cap = 200
 
-    def __init__(self, full_cmd, stdout, stderr):
+    def __init__(self, full_cmd, stdout, stderr, call_args):
         # Attributes #
-        self.full_cmd = full_cmd
-        self.stdout   = stdout
-        self.stderr   = stderr
+        self.full_cmd  = full_cmd
+        self.stdout    = stdout
+        self.stderr    = stderr
+        self.call_args = call_args
         # Check stdout #
         if self.stdout is None:
-            tstdout = "<redirected>".encode()
+            out = "<redirected to '%s'>" % self.call_args['out']
+            out = out.encode()
         else:
-            tstdout   = self.stdout[:self.truncate_cap]
-            out_delta = len(self.stdout) - len(tstdout)
+            out   = self.stdout[:self.truncate_cap]
+            out_delta = len(self.stdout) - len(out)
             if out_delta:
-                tstdout += ("... (%d more, please see e.stdout)" % out_delta).encode()
+                out += ("... (%d more, please see e.stdout)" % out_delta).encode()
         # Check stderr #
         if self.stderr is None:
-            tstderr = "<redirected>".encode()
+            err = "<redirected to '%s'>" % self.call_args['err']
+            err = err.encode()
         else:
-            tstderr   = self.stderr[:self.truncate_cap]
-            err_delta = len(self.stderr) - len(tstderr)
+            err   = self.stderr[:self.truncate_cap]
+            err_delta = len(self.stderr) - len(err)
             if err_delta:
-                tstderr += ("... (%d more, please see e.stderr)" % err_delta).encode()
+                err += ("... (%d more, please see e.stderr)" % err_delta).encode()
         # Build message #
         msg = "\n\nRan: %r\n\nSTDOUT:\n\n  %s\n\nSTDERR:\n\n  %s"
-        msg = msg % (full_cmd, tstdout.decode(), tstderr.decode())
+        msg = msg % (full_cmd, out.decode(), err.decode())
         # Call parent #
         super(ErrorReturnCode, self).__init__(msg)
-
-class CommandNotFound(Exception): pass
 
 rc_exc_regex = re.compile(r"ErrorReturnCode_(\d+)")
 rc_exc_cache = {}
 
 def get_rc_exc(rc):
     rc = int(rc)
-    try: return rc_exc_cache[rc]
-    except KeyError: pass
+    try:
+        return rc_exc_cache[rc]
+    except KeyError:
+        pass
     name = "ErrorReturnCode_%d" % rc
     exc = type(name, (ErrorReturnCode,), {})
     rc_exc_cache[rc] = exc
     return exc
 
 def which(program):
-    def is_exe(fpath):
-        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-    fpath, fname = os.path.split(program)
-    if fpath:
+    def is_exe(file_path):
+        return os.path.exists(file_path) and os.access(file_path, os.X_OK)
+    file_path, file_name = os.path.split(program)
+    if file_path:
         if is_exe(program): return program
     else:
         for path in os.environ["PATH"].split(os.pathsep):
@@ -122,12 +100,12 @@ def which(program):
     return None
 
 def resolve_program(program):
+    """Our actual command might have a dash in it, but we can't call
+    that from python (we have to use underscores), so we'll check
+    if a dash version of our underscore command exists and use that
+    if it does."""
     path = which(program)
     if not path:
-        # our actual command might have a dash in it, but we can't call
-        # that from python (we have to use underscores), so we'll check
-        # if a dash version of our underscore command exists and use that
-        # if it does
         if "_" in program: path = which(program.replace("_", "-"))
         if not path: return None
     return path
@@ -138,6 +116,7 @@ def glob(arg):
 ###############################################################################
 class RunningCommand(object):
     def __init__(self, command_ran, process, call_args, stdin=None):
+        # Base attributes #
         self.command_ran = command_ran
         self.process = process
         self._stdout = None
@@ -152,7 +131,7 @@ class RunningCommand(object):
         # because nothing was started to run from Command.__call__
         if self.call_args["with"]: return
 
-        # Run and block
+        # Run and block #
         if stdin: stdin = stdin.encode("utf8")
         self._stdout, self._stderr = self.process.communicate(stdin)
         self._handle_exit_code(self.process.wait())
@@ -167,6 +146,10 @@ class RunningCommand(object):
     def __exit__(self, typ, value, traceback):
         if self.call_args["with"] and Command._prepend_stack:
             Command._prepend_stack.pop()
+
+    def __repr__(self):
+        return "<RunningCommand %r, pid:%d, special_args:%r" % (
+            self.command_ran, self.process.pid, self.call_args)
 
     def __str__(self):
         if IS_PY3: return self.__unicode__()
@@ -190,10 +173,6 @@ class RunningCommand(object):
             if self.process: return getattr(self.process, p)
             else: raise AttributeError
         return getattr(unicode(self), p)
-
-    def __repr__(self):
-        return "<RunningCommand %r, pid:%d, special_args:%r" % (
-            self.command_ran, self.process.pid, self.call_args)
 
     def __long__(self):
         return long(str(self).strip())
@@ -222,7 +201,7 @@ class RunningCommand(object):
 
     def _handle_exit_code(self, rc):
         if rc not in self.call_args["ok_code"]:
-            raise get_rc_exc(rc)(self.command_ran, self._stdout, self._stderr)
+            raise get_rc_exc(rc)(self.command_ran, self._stdout, self._stderr, self.call_args)
 
     def __len__(self):
         return len(str(self))
@@ -247,32 +226,34 @@ class Command(object):
     }
 
     @classmethod
-    def _create(cls, program):
+    def create(cls, program):
         path = resolve_program(program)
         if not path: raise CommandNotFound(program)
         return cls(path)
 
     def __init__(self, path):
+        # Path to executable #
         self._path = path
-        self._partial = False
+        # Partial #
+        self._partial            = False
         self._partial_baked_args = []
-        self._partial_call_args = {}
+        self._partial_call_args  = {}
 
     def __getattribute__(self, name):
-        # Convenience
-        getattr = partial(object.__getattribute__, self)
-        if name.startswith("_"): return getattr(name)
-        if name == "bake": return getattr("bake")
-        return getattr("bake")(name)
+        # Convenience #
+        getattribute = functools.partial(object.__getattribute__, self)
+        if name.startswith("_"): return getattribute(name)
+        if name == "bake":       return getattribute("bake")
+        else:                    return getattribute("bake")(name)
 
     @staticmethod
     def _extract_call_args(kwargs):
         kwargs = kwargs.copy()
         call_args = Command.call_args.copy()
-        for parg, default in call_args.items():
-            key = "_" + parg
+        for arg, default in call_args.items():
+            key = "_" + arg
             if key in kwargs:
-                call_args[parg] = kwargs[key]
+                call_args[arg] = kwargs[key]
                 del kwargs[key]
         return call_args, kwargs
 
@@ -284,46 +265,40 @@ class Command(object):
     def _compile_args(self, args, kwargs):
         processed_args = []
 
-        # aggregate positional args
+        # Aggregate positional args
         for arg in args:
             if isinstance(arg, (list, tuple)):
                 if not arg:
-                    message  = "Empty list passed as an argument to %r"
-                    message += "If you're using glob.glob(), please use pbs.glob() instead."
+                    message  = "Empty list passed as an argument to '%r'."
+                    message += " If you're using glob.glob(), please use pbs.glob() instead."
                     warnings.warn(message % self.path, stacklevel=3)
                 for sub_arg in arg: processed_args.append(self._format_arg(sub_arg))
             else: processed_args.append(self._format_arg(arg))
 
-        # aggregate the keyword arguments
+        # Aggregate the keyword arguments
         for k,v in kwargs.items():
-            # we're passing a short arg as a kwarg, example:
+            # We're passing a short arg as a kwarg, example:
             # cut(d="\t")
             if len(k) == 1:
-                processed_args.append("-"+k)
+                processed_args.append("-" + k)
                 if v is not True: processed_args.append(self._format_arg(v))
-
             # we're doing a long arg
             else:
                 k = k.replace("_", "-")
-
-                if v is True: processed_args.append("--"+k)
+                if v is True: processed_args.append("--" + k)
                 else: processed_args.append("--%s=%s" % (k, self._format_arg(v)))
-
         return processed_args
 
     def bake(self, *args, **kwargs):
         fn = Command(self._path)
         fn._partial = True
-
         call_args, kwargs = self._extract_call_args(kwargs)
-
         pruned_call_args = call_args
         for k,v in Command.call_args.items():
             try:
                 if pruned_call_args[k] == v:
                     del pruned_call_args[k]
             except KeyError: continue
-
         fn._partial_call_args.update(self._partial_call_args)
         fn._partial_call_args.update(pruned_call_args)
         fn._partial_baked_args.extend(self._partial_baked_args)
@@ -357,7 +332,7 @@ class Command(object):
         args = list(args)
         cmd = []
 
-        # aggregate any with contexts
+        # Aggregate any with contexts
         for prepend in self._prepend_stack: cmd.extend(prepend)
 
         cmd.append(self._path)
@@ -365,21 +340,21 @@ class Command(object):
         call_args, kwargs = self._extract_call_args(kwargs)
         call_args.update(self._partial_call_args)
 
-        # here we normalize the ok_code to be something we can do
+        # Here we normalize the ok_code to be something we can do
         # "if return_code in call_args["ok_code"]" on
         if not isinstance(call_args["ok_code"], (tuple, list)):
             call_args["ok_code"] = [call_args["ok_code"]]
 
-        # set pipe to None if we're outputting straight to CLI
-        pipe = None if call_args["fg"] else subp.PIPE
+        # Set pipe to None if we're outputting straight to CLI
+        pipe = None if call_args["fg"] else subprocess.PIPE
 
-        # check if we're piping via composition
+        # Check if we're piping via composition
         stdin = pipe
         actual_stdin = None
         if args:
             first_arg = args.pop(0)
             if isinstance(first_arg, RunningCommand):
-                # it makes sense that if the input pipe of a command is running
+                # It makes sense that if the input pipe of a command is running
                 # in the background, then this command should run in the
                 # background as well
                 if first_arg.call_args["bg"]:
@@ -391,32 +366,32 @@ class Command(object):
 
         processed_args = self._compile_args(args, kwargs)
 
-        # makes sure our arguments are broken up correctly
+        # Makes sure our arguments are broken up correctly
         split_args = self._partial_baked_args + processed_args
         final_args = split_args
 
         cmd.extend(final_args)
         command_ran = " ".join(cmd)
 
-        # with contexts shouldn't run at all yet, they prepend
+        # With contexts shouldn't run at all yet, they prepend
         # to every command in the context
         if call_args["with"]:
             Command._prepend_stack.append(cmd)
             return RunningCommand(command_ran, None, call_args)
 
-        # stdin from string
+        # Stdin from string
         input = call_args["in"]
         if input:
             actual_stdin = input
 
-        # stdout redirection
+        # Stdout redirection
         stdout = pipe
         out = call_args["out"]
         if out:
             if hasattr(out, "write"): stdout = out
             else: stdout = open(str(out), "w")
 
-        # stderr redirection
+        # Stderr redirection
         stderr = pipe
         err = call_args["err"]
 
@@ -424,10 +399,10 @@ class Command(object):
             if hasattr(err, "write"): stderr = err
             else: stderr = open(str(err), "w")
 
-        if call_args["err_to_out"]: stderr = subp.STDOUT
+        if call_args["err_to_out"]: stderr = subprocess.STDOUT
 
-        # leave shell=False
-        process = subp.Popen(cmd, shell=False, env=call_args["env"],
+        # Leave shell=False
+        process = subprocess.Popen(cmd, shell=False, env=call_args["env"],
             cwd=call_args["cwd"], stdin=stdin, stdout=stdout, stderr=stderr)
 
         return RunningCommand(command_ran, process, call_args, actual_stdin)
@@ -504,7 +479,7 @@ class Environment(dict):
         if builtin: return builtin
 
         # it must be a command then
-        return Command._create(key)
+        return Command.create(key)
 
     def b_cd(self, path):
         os.chdir(path)
@@ -513,7 +488,7 @@ class Environment(dict):
         return which(program)
 
 ###############################################################################
-class SelfWrapper(ModuleType):
+class SelfWrapper(types.ModuleType):
     """
     This is a thin wrapper around THIS module (we patch sys.modules[__name__]).
     this is in the case that the user does a "from pbs import whatever"
