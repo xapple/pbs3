@@ -1,14 +1,15 @@
-`pbs3` version 3.0.1
+`pbs3` version 3.0.2
 ====================
 
 #### This is a fork of the `pbs` package that works on Windows and Python 3. ####
 
-| Package | Unix / Python 2 | Unix / Python 3 | Windows / Python 2 | Windows / Python 3 |
-| ------- | --------------- | --------------- | ---------------    | ---------------    |
-| `sh`    | ✅ Works        | ✅  Works       | 🔴 Not supported   | 🔴 Not supported   |
-| `pbs`   | ✅ Works        | 🔴  Fails       | ✅ Works           | 🔴 Fails           |
-| `pbs3`  | ✅ Works        | ✅  Works       | ✅ Works           | ✅ Works           |
+| Package | Unix / Python 2 | Unix / Python 3 | Windows / Python 2 | Windows / Python 3 | Compatible forking* |
+| ------- | --------------- | --------------- | ---------------    | ---------------    | ------------------- |
+| `sh`    | ✅ Works        | ✅  Works       | 🔴 Not supported   | 🔴 Not supported   | 🔴 Fails            |
+| `pbs`   | ✅ Works        | 🔴  Fails       | ✅ Works           | 🔴 Fails           | ✅ Works            |
+| `pbs3`  | ✅ Works        | ✅  Works       | ✅ Works           | ✅ Works           | ✅ Works            |
 
+* By compatible forking we mean a method of creating subprocesses that can work successfully inside a debugging environment such as the one provided by PyCharm.
 
 ### Why do we need a new version of `pbs`?
 

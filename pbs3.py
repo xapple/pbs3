@@ -1,40 +1,14 @@
 # Constants #
-__version__     = "3.0.1"
+__version__     = "3.0.2"
 __project_url__ = "https://github.com/xapple/pbs3"
 
 # Modules #
-import sys, os, re, warnings, platform, functools, types, subprocess
+import sys, os, re, warnings, functools, types, subprocess
 from glob import glob as original_glob
 
 # Python 3 hack #
 IS_PY3 = sys.version_info[0] == 3
-if IS_PY3:
-    raw_input = input
-    unicode   = str
-
-###############################################################################
-windows_warning = """
-Sh.py is the new pbs. Please download and install sh.py with the following
-command:
-
-    $ pip install sh
-
-or
-
-    $ easy_install sh
-
-Sh.py includes many enhancements and will be the supported subprocess launcher
-for the future. See its documentation here http://amoffat.github.com/sh/.
-
-To migrate existing code, try this:
-
-    import sh as pbs
-"""
-
-# Deprecation warning if not on windows #
-if "windows" not in platform.system().lower():
-    warnings.simplefilter("always")
-    warnings.warn(windows_warning, DeprecationWarning)
+if IS_PY3: unicode = str
 
 ###############################################################################
 class CommandNotFound(Exception): pass
@@ -124,7 +98,7 @@ class RunningCommand(object):
         self.call_args = call_args
 
         # We're running in the background, return self and let us lazily
-        # evaluate
+        # evaluate.
         if self.call_args["bg"]: return
 
         # We're running this command as a with context, don't do anything
