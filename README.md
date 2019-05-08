@@ -9,7 +9,7 @@
 | `pbs`   | ✅ Works        | 🔴  Fails       | ✅ Works           | 🔴 Fails           | ✅ Works            |
 | `pbs3`  | ✅ Works        | ✅  Works       | ✅ Works           | ✅ Works           | ✅ Works            |
 
-* By compatible forking we mean a method of creating subprocesses that can work successfully inside a debugging environment such as the one provided by PyCharm.
+\* By compatible forking we mean a method of creating subprocesses that can work successfully inside a debugging environment such as the one provided by PyCharm.
 
 ### Why do we need a new version of `pbs`?
 

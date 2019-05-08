@@ -41,7 +41,7 @@ class ErrorReturnCode(Exception):
             if err_delta:
                 err += ("... (%d more, please see e.stderr)" % err_delta).encode()
         # Build message #
-        msg = "\n\nRan: %r\n\nSTDOUT:\n\n  %s\n\nSTDERR:\n\n  %s"
+        msg = "\n\nRan: %s\n\nSTDOUT:\n\n  %s\n\nSTDERR:\n\n  %s"
         msg = msg % (full_cmd, out.decode(), err.decode())
         # Call parent #
         super(ErrorReturnCode, self).__init__(msg)
