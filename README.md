@@ -19,6 +19,8 @@
 
 * For these reasons, the legacy `pbs` package is still used whenever one needs to launch external processes on Windows machines and is [still available](https://pypi.org/project/pbs/) at `pip install pbs`.
 
+* The old `pbs` package is also used for its more compatible way of starting subprocessed. The current `sh` module is [not compatible](https://github.com/amoffat/sh/issues/475) with developing in PyCharm for instance.
+
 * However the latest `pbs` version (v0.110 from Oct 20, 2012) does not work on Python 3. This package, `pbs3` fixes this.
 
 
