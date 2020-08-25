@@ -18,5 +18,12 @@ import pbs3
 import sh
 
 ###############################################################################
-print(pbs3.ls())
-print(sh.ls())
+print("Testing pbs3")
+print(pbs3.ls('-halt'))
+
+print("Testing sh")
+print(sh.ls('-halt'))
+
+print("Testing external program")
+result = sh.barrnap('--version')
+print(result.stderr)
