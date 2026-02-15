@@ -244,7 +244,7 @@ class Command(object):
             if isinstance(arg, (list, tuple)):
                 if not arg:
                     message  = "Empty list passed as an argument to '%r'."
-                    message += " If you're using glob.glob(), please use pbs.glob() instead."
+                    message += " If you're using glob.glob(), please use runps.glob() instead."
                     warnings.warn(message % self.path, stacklevel=3)
                 for sub_arg in arg: processed_args.append(self._format_arg(sub_arg))
             else: processed_args.append(self._format_arg(arg))
@@ -384,7 +384,7 @@ class Command(object):
 ###############################################################################
 class Environment(dict):
     """
-    This class is used directly when we do a "from pbs import *". It allows
+    This class is used directly when we do a "from runps import *". It allows
     lookups to names that aren't found in the global scope to be searched
     for as a program. For example, if "ls" isn't found in the program's
     scope, we consider it a system program and try to find it.
@@ -410,16 +410,16 @@ class Environment(dict):
     def __missing__(self, key):
         # This seems to happen in Python 3
         if key == "__path__":
-            message  = "You cannot use the form 'from pbs import x' in Python 3."
-            message += "Please use x = pbs.Command('x') instead."
+            message  = "You cannot use the form 'from runps import x' in Python 3."
+            message += "Please use x = runps.Command('x') instead."
             raise ImportError(message)
 
         # The only way we'd get to here is if we've tried to
         # import * from a repl. So, raise an exception, since
         # that's really the only sensible thing to do
         if key == "__all__":
-            message  = "Cannot import * from pbs."
-            message += "Please import pbs or import programs individually."
+            message  = "Cannot import * from runps."
+            message += "Please import runps or import programs individually."
             raise ImportError(message)
 
         # If we end with "_" just go ahead and skip searching
@@ -465,7 +465,7 @@ class Environment(dict):
 class SelfWrapper(types.ModuleType):
     """
     This is a thin wrapper around THIS module (we patch sys.modules[__name__]).
-    this is in the case that the user does a "from pbs import whatever"
+    this is in the case that the user does a "from runps import whatever"
     in other words, they only want to import certain programs, not the whole
     system PATH worth of commands. In this case, we just proxy the
     import lookup to our Environment class.

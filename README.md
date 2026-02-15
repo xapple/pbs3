@@ -79,51 +79,51 @@ This would occur when the program called exited with a non-zero return code.
 Original documentation
 ======================
 
-PBS is a unique subprocess wrapper that maps your system programs to
-Python functions dynamically.  PBS helps you write shell scripts in
+runps is a unique subprocess wrapper that maps your system programs to
+Python functions dynamically.  runps helps you write shell scripts in
 Python by giving you the good features of Bash (easy command calling, easy
 piping) with all the power and flexibility of Python.
 
 ```python
-from pbs import ifconfig
+from runps import ifconfig
 print ifconfig("eth0")
 ```
 
-PBS is not a collection of system commands implemented in Python.
+runps is not a collection of system commands implemented in Python.
 
 # Getting
 
-    $> pip install pbs
+    $> pip install runps
 
 # Usage
 
-The easiest way to get up and running is to import pbs
-directly or import your program from pbs:
+The easiest way to get up and running is to import runps
+directly or import your program from runps:
 
 ```python
-import pbs
-print pbs.ifconfig("eth0")
+import runps
+print runps.ifconfig("eth0")
 
-from pbs import ifconfig
+from runps import ifconfig
 print ifconfig("eth0")
 ```
 
-A less common usage pattern is through PBS Command wrapper, which takes a
+A less common usage pattern is through runps Command wrapper, which takes a
 full path to a command and returns a callable object.  This is useful for
 programs that have weird characters in their names or programs that aren't in
 your $PATH:
 
 ```python
-import pbs
-ffmpeg = pbs.Command("/usr/bin/ffmpeg")
+import runps
+ffmpeg = runps.Command("/usr/bin/ffmpeg")
 ffmpeg(movie_file)
 ```
 
-The last usage pattern is for trying PBS through an interactive REPL.  By
+The last usage pattern is for trying runps through an interactive REPL.  By
 default, this acts like a star import (so all of your system programs will be
 immediately available as functions):
 
-    $> python pbs.py
+    $> python runps.py
 
 
 # Examples
@@ -153,7 +153,7 @@ You can also call attributes on commands.  This translates to the command
 name followed by the attribute name:
 
 ```python
-from pbs import git
+from runps import git
 
 # resolves to "git branch -v"
 print git.branch("-v")
@@ -196,7 +196,7 @@ print wc(ls("/etc", "-1"), "-l")
 
 ## Redirection
 
-PBS can redirect the standard and error output streams of a process to a file.
+runps can redirect the standard and error output streams of a process to a file.
 This is done with the special _out and _err keyword arguments. You can pass a
 filename or a file object as the argument value. When the name of an already
 existing file is passed, the contents of the file will be overwritten.
@@ -206,7 +206,7 @@ ls(_out="files.list")
 ls("nonexistent", _err="error.txt")
 ```
 
-PBS can also redirect the error output stream to the standard output stream,
+runps can also redirect the error output stream to the standard output stream,
 using the special _err_to_out=True keyword argument.
 
 
@@ -272,7 +272,7 @@ of their call.  An example would be opening a text editor:
 vim(file_to_edit)
 ```
 
-This will block because pbs will be trying to aggregate the output
+This will block because runps will be trying to aggregate the output
 of the command to python, without displaying anything to the screen. The
 solution is the "_fg" special keyword arg:
 
@@ -301,11 +301,11 @@ if not which("supervisorctl"): apt_get("install", "supervisor", "-y")
 
 ## Baking
 
-PBS is capable of "baking" arguments into commands.  This is similar
+runps is capable of "baking" arguments into commands.  This is similar
 to the stdlib functools.partial wrapper.  An example can speak volumes:
 
 ```python
-from pbs import ls
+from runps import ls
 
 ls = ls.bake("-la")
 print ls # "/usr/bin/ls -la"
@@ -320,7 +320,7 @@ This gets **really interesting** when you combine this with the attribute
 access on a command:
 
 ```python
-from pbs import ssh
+from runps import ssh
 
 # calling whoami on the server.  this is tedious to do if you're running
 # any more than a few commands.
@@ -387,7 +387,7 @@ except ErrorReturnCode:
 Glob-expansion is not done on your arguments.  For example, this will not work:
 
 ```python
-from pbs import du
+from runps import du
 print du("*")
 ```
 
@@ -395,7 +395,7 @@ You'll get an error to the effect of "cannot access '\*': No such file or direct
 This is because the "\*" needs to be glob expanded:
 
 ```python
-from pbs import du, glob
+from runps import du, glob
 print du(glob("*"))
 ```
 
@@ -426,14 +426,14 @@ print ns.x
 
 ## Weirdly-named Commands
 
-PBS automatically handles underscore-dash conversions.  For example, if you want
+runps automatically handles underscore-dash conversions.  For example, if you want
 to call apt-get:
 
 ```python
 apt_get("install", "mplayer", y=True)
 ```
 
-PBS looks for "apt_get", but if it doesn't find it, replaces all underscores
+runps looks for "apt_get", but if it doesn't find it, replaces all underscores
 with dashes and searches again.  If the command still isn't found, a
 CommandNotFound exception is raised.
 
@@ -455,13 +455,13 @@ print script()
 
 ## Non-standard Exit Codes
 
-Normally, if a command returns an exit code that is not 0, PBS raises an exception
+Normally, if a command returns an exit code that is not 0, runps raises an exception
 based on that exit code.  However, if you have determined that an error code
-is normal and want to retrieve the output of the command without PBS raising an
+is normal and want to retrieve the output of the command without runps raising an
 exception, you can use the "_ok_code" special argument to suppress the exception:
 
 ```python
-output = pbs.ls("dir_that_exists", "dir_that_doesnt", _ok_code=2)
+output = runps.ls("dir_that_exists", "dir_that_doesnt", _ok_code=2)
 ```
 
 In the above example, even though you're trying to list a directory that doesn't
