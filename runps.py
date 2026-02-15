@@ -1,6 +1,6 @@
 # Constants #
-__version__     = "3.0.2"
-__project_url__ = "https://github.com/xapple/pbs3"
+__version__     = "4.0.0"
+__project_url__ = "https://github.com/xapple/runps"
 
 # Modules #
 import sys, os, re, warnings, functools, types, subprocess

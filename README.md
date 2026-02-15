@@ -1,47 +1,44 @@
-`pbs3` version 3.0.2
-====================
+`runps` version 4.0.0
+=====================
 
-#### This is a fork of the `pbs` package that works on both *nix and Windows (with Python 3) ####
+#### This is a fork of the `sh` package (formely `pbs` package) that works on Linux, macOS and Windows.
 
-| Package | Unix / Python 2 | Unix / Python 3 | Windows / Python 2 | Windows / Python 3 | Compatible forking* |
-| ------- | --------------- | --------------- | ---------------    | ---------------    | ------------------- |
-| [`sh`](https://github.com/amoffat/sh)    | ✅ Works        | ✅  Works       | 🔴 Not supported   | 🔴 Not supported   | 🔴 Fails            |
-| `pbs`   | ✅ Works        | 🔴  Fails       | ✅ Works           | 🔴 Fails           | ✅ Works            |
-| `pbs3`  | ✅ Works        | ✅  Works       | ✅ Works           | ✅ Works           | ✅ Works            |
+| Package     | *nix / Python 2 | *nix / Python 3 | Windows / Python 2 | Windows / Python 3 | Compatible forking* |
+|-------------|-----------------|-----------------| ---------------    | ---------------    | ------------------- |
+| [`sh`](https://github.com/amoffat/sh) | ✅ Works         | ✅  Works        | 🔴 Not supported   | 🔴 Not supported   | 🔴 Fails            |
+| `runps`     | ✅ Works         | ✅  Works        | ✅ Works           | ✅ Works           | ✅ Works            |
 
 \* By compatible forking we mean a method of creating subprocesses that can work successfully inside a debugging environment such as the one provided by PyCharm.
 
-### Why do we need a new version of `pbs`?
+### Why do we need a different version of `sh`?
 
 * First, in early 2012, the original `pbs` package was conceived by [@amoffat](https://github.com/amoffat/sh). It could launch subprocesses on both Unix and Windows environments with Python 2.
 
 * In late 2012, the `pbs` project was renamed to `sh`, lots of functionality was added, but support for Windows [was completely dropped](http://amoffat.github.io/sh/sections/faq.html#will-windows-be-supported).
 
-* For these reasons, the legacy `pbs` package was still used whenever one needs to launch external processes on Windows machines and was [still available](https://pypi.org/project/pbs/) at `pip install pbs`.
+* For some time, the legacy `pbs` package was still used whenever one needs to launch external processes on Windows machines and was [still available](https://pypi.org/project/pbs/) at `pip install pbs`.
 
 * The old `pbs` package was also used for its more compatible way of starting subprocesses. The current `sh` module is [not compatible](https://github.com/amoffat/sh/issues/475) with developing in PyCharm for instance.
 
-* However the latest `pbs` version (v0.110 from Oct 20, 2012) does not work on Python 3. This package, `pbs3` fixes this.
+* However, the last ever published version of `pbs` (v0.110 from Oct 20, 2012) does not work on Python 3. This package fixes that.
+
+* `runps` works on all platforms and Python versions.
 
 
 ### How do I install and use this package?
 
 * You can install this version with this command:
 
-    `pip install pbs3`
+    `pip install runps`
 
-* You can use this package with this import statement:
+* You can use this package with this import statement (if you are porting from `sh` code):
 
-    `import pbs3 as pbs`
-
-* Or if you are porting from `sh` code:
-
-    `import pbs3 as sh`
+    `import runps as sh`
 
 
 ### What exactly did not work in Python 3?
 
-This would be the traceback that the old pbs v0.110 would produce:
+This would be the traceback that the old `pbs v0.110` would produce:
 
     c:\python37\lib\site-packages\pbs.py in __call__(self, *args, **kwargs)
         454             cwd=call_args["cwd"], stdin=stdin, stdout=stdout, stderr=stderr)

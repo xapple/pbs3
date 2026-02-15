@@ -10,11 +10,17 @@
 
 # IDE files #
 /.idea
+/.vscode
+/.cursorignore
+/.cursorrules
+
+# LLM files #
+.claude/
 
 # Distribution #
 /build/
 /dist/
-/pbs3.egg-info/
+/runps.egg-info/
 
 # Testing #
 /.pytest_cache/
