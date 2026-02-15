@@ -5,7 +5,7 @@
 
 | Package     | *nix / Python 2 | *nix / Python 3 | Windows / Python 2 | Windows / Python 3 | Compatible forking* |
 |-------------|-----------------|-----------------| ---------------    | ---------------    | ------------------- |
-| [`sh`](https://github.com/amoffat/sh) | ✅ Works         | ✅  Works        | 🔴 Not supported   | 🔴 Not supported   | 🔴 Fails            |
+| [`sh`](https://github.com/amoffat/sh) | ✅ Works         | 🔴 Not supported | 🔴 Not supported   | 🔴 Not supported   | 🔴 Fails            |
 | `runps`     | ✅ Works         | ✅  Works        | ✅ Works           | ✅ Works           | ✅ Works            |
 
 \* By compatible forking we mean a method of creating subprocesses that can work successfully inside a debugging environment such as the one provided by PyCharm.
