@@ -2,16 +2,16 @@
 # -*- coding: utf8 -*-
 
 # Built-in modules #
-import sys, tempfile
-
-# Third party modules #
-import pytest
+import sys, os
 
 # Internal modules #
 import runps
 
+# Third party modules #
+import pytest
+
 ###############################################################################
-def test_return_code():
+def test_return_code(tmp_path):
     """
     Will test what happens when the program called exits with
     return code 2. It should raise 'ErrorReturnCode_2'.
@@ -20,8 +20,9 @@ def test_return_code():
         AttributeError: 'str' object has no attribute 'decode'
 
     """
-    # Temporary directory #
-    tmp_dir      = tempfile.mkdtemp() + '/'
+    # Temporary directory as a string #
+    tmp_dir = str(tmp_path) + os.sep
+    # All paths #
     program_path = tmp_dir + 'test_program.py'
     stdout_path  = tmp_dir + 'stdout.txt'
     stderr_path  = tmp_dir + 'stderr.txt'
@@ -32,4 +33,9 @@ def test_return_code():
     python = runps.Command(sys.executable)
     # Call #
     with pytest.raises(runps.ErrorReturnCode):
-        python(program_path, _out=stdout_path, _err=stderr_path)
+        return python(program_path, _out=stdout_path, _err=stderr_path)
+    # Clean up #
+
+###############################################################################
+if __name__ == '__main__':
+    result = test_return_code()
