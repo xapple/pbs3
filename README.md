@@ -5,7 +5,7 @@
 
 | Package | Unix / Python 2 | Unix / Python 3 | Windows / Python 2 | Windows / Python 3 | Compatible forking* |
 | ------- | --------------- | --------------- | ---------------    | ---------------    | ------------------- |
-| [`sh`](https://amoffat.github.io/sh/)    | ✅ Works        | ✅  Works       | 🔴 Not supported   | 🔴 Not supported   | 🔴 Fails            |
+| [`sh`](https://github.com/amoffat/sh)    | ✅ Works        | ✅  Works       | 🔴 Not supported   | 🔴 Not supported   | 🔴 Fails            |
 | `pbs`   | ✅ Works        | 🔴  Fails       | ✅ Works           | 🔴 Fails           | ✅ Works            |
 | `pbs3`  | ✅ Works        | ✅  Works       | ✅ Works           | ✅ Works           | ✅ Works            |
 
