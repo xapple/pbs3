@@ -167,6 +167,10 @@ class RunningCommand(object):
         if self.call_args["bg"]: self.wait()
         return self._stderr.decode("utf8", "replace")
 
+    @property
+    def ran(self):
+        return self.command_ran
+
     def wait(self):
         if self.process.returncode is not None: return
         self._stdout, self._stderr = self.process.communicate()
@@ -408,12 +412,6 @@ class Environment(dict):
         else: dict.__setitem__(self, k, v)
 
     def __missing__(self, key):
-        # This seems to happen in Python 3
-        if key == "__path__":
-            message  = "You cannot use the form 'from runps import x' in Python 3."
-            message += "Please use x = runps.Command('x') instead."
-            raise ImportError(message)
-
         # The only way we'd get to here is if we've tried to
         # import * from a repl. So, raise an exception, since
         # that's really the only sensible thing to do
@@ -485,6 +483,9 @@ class SelfWrapper(types.ModuleType):
         self.env = Environment(globals())
 
     def __getattr__(self, name):
+        # Dunder attributes should not be resolved as system commands
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
         return self.env[name]
 
 ###############################################################################
