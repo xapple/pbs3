@@ -1,4 +1,4 @@
-`runps` version 4.1.0
+`runps` version 4.1.1
 =====================
 
 #### This is a fork of the `sh` package (formely `pbs` package) that works on Linux, macOS and Windows.
