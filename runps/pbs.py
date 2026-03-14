@@ -1,7 +1,3 @@
-# Constants #
-__version__ = '4.0.4'
-__project_url__ = 'https://github.com/xapple/runps'
-
 # Modules #
 import sys, os, re, warnings, functools, types, subprocess
 from glob import glob as original_glob

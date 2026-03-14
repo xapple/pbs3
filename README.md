@@ -1,4 +1,4 @@
-`runps` version 4.0.4
+`runps` version 4.1.0
 =====================
 
 #### This is a fork of the `sh` package (formely `pbs` package) that works on Linux, macOS and Windows.
@@ -34,6 +34,19 @@
 * You can use this package with this import statement (if you are porting from `sh` code):
 
     `import runps as sh`
+
+
+### Cross-platform `sh` fallback
+
+Starting with version 4.1.0, `runps` provides a convenient cross-platform import:
+
+```python
+from runps import sh
+```
+
+On Unix/macOS, this gives you the real [`sh`](https://github.com/amoffat/sh) library (installed automatically as a dependency). On Windows, it falls back to the built-in `pbs` module which has the same API. If `sh` is not installed on Unix for any reason, it also falls back to `pbs`.
+
+This is useful for packages that need to support all platforms with a single dependency. For example, instead of conditionally depending on `sh` for Unix and `runps` for Windows, you can depend on just `runps` and use `from runps import sh` everywhere.
 
 
 ### What exactly did not work in Python 3?
