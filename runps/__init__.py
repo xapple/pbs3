@@ -10,7 +10,7 @@ Backward compatibility: ``import runps; runps.ls("-la")`` and
 """
 
 # Constants #
-__version__ = '4.1.1'
+__version__ = '4.1.2'
 __project_url__ = 'https://github.com/xapple/runps'
 
 # Built-in modules #
